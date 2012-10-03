@@ -15,12 +15,17 @@
       $clientId       = NULL,
       $clientSecret   = NULL,
       $developerKey   = NULL,
-      $state          = NULL;
+      $state          = NULL,
+      $redirectUri    = NULL,
+      $approvalPrompt = 'force';
 
     private
       $oauthUrl       = NULL,
       $oauthTokenUri  = NULL,
       $oauthRevokeUri = NULL;
+
+    private
+      $provider       = NULL;
 
     private
       $accessToken    = NULL;
@@ -34,7 +39,7 @@
      * @param   string[] scope
      * @return  string
      */
-    public function createAuthUrl($scope) {
+    public function createAuthUrl(array $scope) {
       $params= array(
         'response_type=code',
         'redirect_uri='.urlencode($this->redirectUri),
@@ -52,14 +57,14 @@
     }
 
     private function doRequest($url, $params) {
-      $request= new HttpRequest($url);
+      $request= new HttpRequest(new URL($url));
       $request->setMethod(HttpConstants::POST);
       $request->setParameters(array_merge(array(
         'client_id'     => $this->clientId,
         'client_secret' => $this->clientSecret
       ), $params));
 
-      $conn= new HttpConnection();
+      $conn= new HttpConnection($url);
       return $conn->send($request);
     }
 
@@ -67,13 +72,13 @@
      * Authenticate
      *
      */
-    public function authenticate($code, $service) {
+    public function authenticate($code) {
 
       // The user has potentially granted the authentication request
       // on the provider's auth page.
       // Now the code must be verified directly with the provider
       $response= $this->doRequest($this->getOauthTokenUri(), array(
-        'code'  => $code,
+        'code'          => $code,
         'grant_type'    => 'authorization_code',
         'redirect_uri'  => $this->redirectUri
       ));
@@ -112,6 +117,14 @@
       $this->oauthRevokeUri= $uri;
     }
 
+    public function getRedirectUri() {
+      return $this->redirectUri;
+    }
+
+    public function setRedirectUri($uri) {
+      $this->redirectUri= $uri;
+    }
+
     public function setAccessToken($data) {
       $decoder= new JsonDecoder();
       $struct= $decoder->decode($data);
@@ -128,7 +141,8 @@
     }
 
     public function getAccessToken() {
-      return $this->accessToken;
+      $decoder= new JsonDecoder();
+      return $decoder->encode($this->accessToken);
     }
 
     private function setAccessTokenCreatedTime(Date $time) {
@@ -181,6 +195,23 @@
       // TODO: Check whether token has already expired, in that case: refresh it
 
       $request->setHeader('Authorization', 'Bearer '.$this->accessToken['access_token']);
+    }
+
+    public function signRest(RestRequest $request) {
+      // Check we actually can sign this
+      if (!$this->accessToken) {
+        throw new IllegalStateException('Cannot sign HttpRequest w/o possessing an accessToken.');
+      }
+
+      // Add developerKey prior to signing request
+      if ($this->developerKey) {
+        // $request->setParameter('key', $this->developerKey);
+      }
+
+      // TODO: Check whether token has already expired, in that case: refresh it
+
+      $request->addHeader('Authorization', 'Bearer '.$this->accessToken['access_token']);
+
     }
 
     /**
