@@ -49,6 +49,69 @@
     }
 
     /**
+     * Retrieve redirect uri
+     *
+     * @return  string
+     */
+    public function getRedirectUri() {
+      return $this->redirectUri;
+    }
+
+    /**
+     * Set redirect uri
+     *
+     * @param   string uri
+     */
+    public function setRedirectUri($uri) {
+      $this->redirectUri= $uri;
+    }
+
+    /**
+     * Set client id
+     *
+     * @param   string id
+     */
+    public function setClientId($id) {
+      $this->clientId= $id;
+    }
+
+    /**
+     * Retrieve client id
+     *
+     * @return  string
+     */
+    public function getClientId() {
+      return $this->clientId;
+    }
+
+    /**
+     * Set client secret
+     *
+     * @param   string secret
+     */
+    public function setClientSecret($secret) {
+      $this->clientSecret= $secret;
+    }
+
+    /**
+     * Set developer key
+     *
+     * @param   string key
+     */
+    public function setDeveloperKey($key) {
+      $this->developerKey= $key;
+    }
+
+    /**
+     * Retrieve developer key
+     *
+     * @return string
+     */
+    public function getDeveloperKey() {
+      return $this->developerKey;
+    }
+
+    /**
      * Create auth url; this is the URL that must be called by the user
      * to be authenticated to create a oauth code.
      *
@@ -125,24 +188,6 @@
     }
 
     /**
-     * Retrieve redirect uri
-     *
-     * @return  string
-     */
-    public function getRedirectUri() {
-      return $this->redirectUri;
-    }
-
-    /**
-     * Set redirect uri
-     *
-     * @param   string uri
-     */
-    public function setRedirectUri($uri) {
-      $this->redirectUri= $uri;
-    }
-
-    /**
      * Set access token
      *
      * @param   string data
@@ -186,51 +231,6 @@
       }
 
       $this->accessToken['created']= $time->getTime();
-    }
-
-    /**
-     * Set client id
-     *
-     * @param   string id
-     */
-    public function setClientId($id) {
-      $this->clientId= $id;
-    }
-
-    /**
-     * Retrieve client id
-     *
-     * @return  string
-     */
-    public function getClientId() {
-      return $this->clientId;
-    }
-
-    /**
-     * Set client secret
-     *
-     * @param   string secret
-     */
-    public function setClientSecret($secret) {
-      $this->clientSecret= $secret;
-    }
-
-    /**
-     * Set developer key
-     *
-     * @param   string key
-     */
-    public function setDeveloperKey($key) {
-      $this->developerKey= $key;
-    }
-
-    /**
-     * Retrieve developer key
-     *
-     * @return string
-     */
-    public function getDeveloperKey() {
-      return $this->developerKey;
     }
 
     /**
