@@ -2,14 +2,19 @@
 
   uses(
     'security.oauth2.OAuth',
+    'security.oauth2.OAuth2Provider',
+    'security.oauth2.OAuth2Exception',
     'peer.http.HttpConnection',
     'peer.http.HttpRequest',
     'peer.http.HttpConstants',
     'webservices.json.JsonDecoder',
-    'util.Date',
-    'security.oauth2.OAuth2Exception'
+    'util.Date'
   );
 
+  /**
+   * OAuth2 client implementation
+   *
+   */
   class OAuth2Client extends Object implements OAuth {
     private
       $clientId       = NULL,
@@ -20,21 +25,37 @@
       $approvalPrompt = 'force';
 
     private
-      $oauthUrl       = NULL,
-      $oauthTokenUri  = NULL,
-      $oauthRevokeUri = NULL;
-
-    private
       $provider       = NULL;
 
     private
       $accessToken    = NULL;
 
     /**
+     * Constructor
+     *
+     * @param   security.oauth2.OAuth2Provider provider
+     */
+    public function __construct(OAuth2Provider $provider) {
+      $this->setProvider($provider);
+    }
+
+    /**
+     * Set OAuth2Provider
+     *
+     * @param   security.oauth2.OAuth2Provider provider
+     */
+    public function setProvider(OAuth2Provider $provider) {
+      $this->provider= $provider;
+    }
+
+    /**
      * Create auth url; this is the URL that must be called by the user
      * to be authenticated to create a oauth code.
      *
      * That code must later be fed to authenticate().
+     *
+     * The given scopes are the permissions to request from the resource
+     * server and are usecase-specific.
      *
      * @param   string[] scope
      * @return  string
@@ -53,9 +74,16 @@
         $params[]= 'state='.urlencode($this->state);
       }
 
-      return $this->getOauthUrl().'?'.implode('&', $params);
+      return $this->provider->getOauthUrl().'?'.implode('&', $params);
     }
 
+    /**
+     * Helper method to perform HTTP request
+     *
+     * @param   string url
+     * @param   array<string,string> params
+     * @return  peer.http.HttpResponse
+     */
     private function doRequest($url, $params) {
       $request= new HttpRequest(new URL($url));
       $request->setMethod(HttpConstants::POST);
@@ -71,13 +99,16 @@
     /**
      * Authenticate
      *
+     * @param   string code
+     * @return  string token
+     * @throws  security.oauth2.OAuth2Exception when authentication failed
      */
     public function authenticate($code) {
 
       // The user has potentially granted the authentication request
       // on the provider's auth page.
       // Now the code must be verified directly with the provider
-      $response= $this->doRequest($this->getOauthTokenUri(), array(
+      $response= $this->doRequest($this->provider->getOauthTokenUri(), array(
         'code'          => $code,
         'grant_type'    => 'authorization_code',
         'redirect_uri'  => $this->redirectUri
@@ -93,38 +124,30 @@
       return $this->getAccessToken();
     }
 
-    public function getOauthUrl() {
-      return $this->oauthUrl;
-    }
-
-    public function setOauthUrl($url) {
-      $this->oauthUrl= $url;
-    }
-
-    public function getOauthTokenUri() {
-      return $this->oauthTokenUri;
-    }
-
-    public function setOauthTokenUri($uri) {
-      $this->oauthTokenUri= $uri;
-    }
-
-    public function getOauthRevokeUri() {
-      return $this->oauthRevokeUri;
-    }
-
-    public function setOauthRevokeUri($uri) {
-      $this->oauthRevokeUri= $uri;
-    }
-
+    /**
+     * Retrieve redirect uri
+     *
+     * @return  string
+     */
     public function getRedirectUri() {
       return $this->redirectUri;
     }
 
+    /**
+     * Set redirect uri
+     *
+     * @param   string uri
+     */
     public function setRedirectUri($uri) {
       $this->redirectUri= $uri;
     }
 
+    /**
+     * Set access token
+     *
+     * @param   string data
+     * @throws  security.oauth2.OAuth2Exception if invalid token
+     */
     public function setAccessToken($data) {
       $decoder= new JsonDecoder();
       $struct= $decoder->decode($data);
@@ -140,11 +163,23 @@
       $this->accessToken= $struct;
     }
 
+    /**
+     * Retrieve access token
+     *
+     * @return  string
+     */
     public function getAccessToken() {
+      if (NULL === $this->accessToken) return NULL;
+
       $decoder= new JsonDecoder();
       return $decoder->encode($this->accessToken);
     }
 
+    /**
+     * Set creation timestamp
+     *
+     * @param   util.Date time
+     */
     private function setAccessTokenCreatedTime(Date $time) {
       if (!is_array($this->accessToken)) {
         throw new IllegalStateException('Cannot set creation time of access token.');
@@ -153,22 +188,47 @@
       $this->accessToken['created']= $time->getTime();
     }
 
+    /**
+     * Set client id
+     *
+     * @param   string id
+     */
     public function setClientId($id) {
       $this->clientId= $id;
     }
 
+    /**
+     * Retrieve client id
+     *
+     * @return  string
+     */
     public function getClientId() {
       return $this->clientId;
     }
 
+    /**
+     * Set client secret
+     *
+     * @param   string secret
+     */
     public function setClientSecret($secret) {
       $this->clientSecret= $secret;
     }
 
+    /**
+     * Set developer key
+     *
+     * @param   string key
+     */
     public function setDeveloperKey($key) {
       $this->developerKey= $key;
     }
 
+    /**
+     * Retrieve developer key
+     *
+     * @return string
+     */
     public function getDeveloperKey() {
       return $this->developerKey;
     }
@@ -197,6 +257,11 @@
       $request->setHeader('Authorization', 'Bearer '.$this->accessToken['access_token']);
     }
 
+    /**
+     * Sign given RestRequest
+     *
+     * @param   webservices.rest.RestRequest request
+     */
     public function signRest(RestRequest $request) {
       // Check we actually can sign this
       if (!$this->accessToken) {
@@ -211,7 +276,6 @@
       // TODO: Check whether token has already expired, in that case: refresh it
 
       $request->addHeader('Authorization', 'Bearer '.$this->accessToken['access_token']);
-
     }
 
     /**
@@ -219,7 +283,7 @@
      *
      */
     public function refreshToken($refreshToken) {
-      $response= $this->doRequest($this->getOauthTokenUri(), array(
+      $response= $this->doRequest($this->provider->getOauthTokenUri(), array(
         'refresh_token' => $refreshToken,
         'grant_type'    => 'refresh_token'
       ));
@@ -238,7 +302,7 @@
      *
      */
     public function revokeToken() {
-      $response= $this->doRequest($this->getOauthRevokeUri(), array(
+      $response= $this->doRequest($this->provider->getOauthRevokeUri(), array(
         'token' => $this->accessToken['access_token']
       ));
 
