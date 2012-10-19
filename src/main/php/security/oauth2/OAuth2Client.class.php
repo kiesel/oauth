@@ -234,6 +234,33 @@
     }
 
     /**
+     * Prepare signature
+     *
+     * @throws  security.oauth2.OAuth2Exception
+     */
+    private function prepareSign() {
+
+      // Check we actually can sign this
+      if (!$this->accessToken) {
+        throw new IllegalStateException('Cannot sign HttpRequest w/o possessing an accessToken.');
+      }
+
+      // Check if token has expired; in that case refresh it.
+      if (Date::now()->isAfter(DateUtil::addSeconds(new Date($this->accessToken['created']), $this->accessToken['expire_in']))) {
+        $this->refreshToken();
+      }
+    }
+
+    /**
+     * Retrieve authentication line
+     *
+     * @return  string
+     */
+    private function getAuthenticationLine() {
+      return 'Bearer '.$this->accessToken['access_token'];
+    }
+
+    /**
      * Sign a given HttpRequest with this oauth's token's
      * signature
      *
@@ -241,20 +268,13 @@
      * @throws  security.oauth2.OAuth2Exception
      */
     public function sign(HttpRequest $request) {
-
-      // Check we actually can sign this
-      if (!$this->accessToken) {
-        throw new IllegalStateException('Cannot sign HttpRequest w/o possessing an accessToken.');
-      }
+      $this->prepareSign();
 
       // Add developerKey prior to signing request
       if ($this->developerKey) {
         $request->setParameter('key', $this->developerKey);
       }
-
-      // TODO: Check whether token has already expired, in that case: refresh it
-
-      $request->setHeader('Authorization', 'Bearer '.$this->accessToken['access_token']);
+      $request->setHeader('Authorization', $this->getAuthenticationLine());
     }
 
     /**
@@ -263,28 +283,28 @@
      * @param   webservices.rest.RestRequest request
      */
     public function signRest(RestRequest $request) {
-      // Check we actually can sign this
-      if (!$this->accessToken) {
-        throw new IllegalStateException('Cannot sign HttpRequest w/o possessing an accessToken.');
-      }
+      $this->prepareSign();
 
       // Add developerKey prior to signing request
       if ($this->developerKey) {
         // $request->setParameter('key', $this->developerKey);
       }
-
-      // TODO: Check whether token has already expired, in that case: refresh it
-
-      $request->addHeader('Authorization', 'Bearer '.$this->accessToken['access_token']);
+      $request->addHeader('Authorization', $this->getAuthenticationLine());
     }
 
     /**
      * Refresh access token
      *
+     * @return  mixed refreshed token
+     * @throws  security.oauth2.OAuth2Exception if refresh is impossible or failed
      */
-    public function refreshToken($refreshToken) {
+    public function refreshToken() {
+      if (!isset($this->accessToken['refresh_token'])) {
+        throw new OAuth2Exception('Cannot refresh accessToken, as no refresh_token token is available.');
+      }
+
       $response= $this->doRequest($this->provider->getOauthTokenUri(), array(
-        'refresh_token' => $refreshToken,
+        'refresh_token' => $this->accessToken['refresh_token'],
         'grant_type'    => 'refresh_token'
       ));
 
