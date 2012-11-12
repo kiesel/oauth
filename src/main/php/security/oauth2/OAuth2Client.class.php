@@ -8,7 +8,8 @@
     'peer.http.HttpRequest',
     'peer.http.HttpConstants',
     'webservices.json.JsonDecoder',
-    'util.Date'
+    'util.Date',
+    'util.DateUtil'
   );
 
   /**

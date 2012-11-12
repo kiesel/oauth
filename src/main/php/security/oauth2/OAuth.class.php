@@ -10,6 +10,6 @@
     public function getAccessToken();
     public function setAccessToken($accessToken);
     public function setDeveloperKey($developerKey);
-    public function refreshToken($refreshToken);
+    public function refreshToken();
     public function revokeToken();
   }
