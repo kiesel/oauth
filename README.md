@@ -1,10 +1,10 @@
 XP Framework based OAuth2 client
 ===
-
 Using the examples:
----
-* GoogleUserInfo
-  displays information for the logged in Google user after authenticating:
+
+GoogleUserInfo
+--
+Display information for the logged in Google user after authenticating:
 
 1. First go to auth URL:
 ```sh
@@ -42,7 +42,10 @@ Performing authorized action...
 ]
 ```
 
-* GithubUser
+GithubUser
+--
+Display information about currently logged in user
+
 1. First go to auth URL:
 ```sh
 kiesel@lostlap [14:14:53] [~/dev/oauth] [master *]
