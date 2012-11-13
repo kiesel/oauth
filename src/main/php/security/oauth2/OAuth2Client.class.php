@@ -163,6 +163,7 @@
      */
     private function doRequest($url, $params) {
       $request= new HttpRequest(new URL($url));
+      $request->setHeader('Accept', 'application/json');
       $request->setMethod(HttpConstants::POST);
       $request->setParameters(array_merge(array(
         'client_id'     => $this->clientId,
@@ -236,9 +237,10 @@
         throw new OAuth2Exception('Access token looks invalid; expected "access_token" field.');
       }
 
-      if (!isset($struct['expires_in'])) {
-        throw new OAuth2Exception('Access token looks invalid; expected "expires_in" field.');
-      }
+      // TODO: Comment in / review against RFC
+      // if (!isset($struct['expires_in'])) {
+      //   throw new OAuth2Exception('Access token looks invalid; expected "expires_in" field.');
+      // }
 
       $this->accessToken= $struct;
     }
@@ -281,8 +283,11 @@
       }
 
       // Check if token has expired; in that case refresh it.
-      if (Date::now()->isAfter(DateUtil::addSeconds(new Date($this->accessToken['created']), $this->accessToken['expire_in']))) {
-        $this->refreshToken();
+      // FIXME: This outer if should disappear
+      if (isset($this->accessToken['created']) && isset($this->accessToken['expire_in'])) {
+        if (Date::now()->isAfter(DateUtil::addSeconds(new Date($this->accessToken['created']), $this->accessToken['expire_in']))) {
+          $this->refreshToken();
+        }
       }
     }
 
@@ -322,6 +327,7 @@
 
       // Add developerKey prior to signing request
       if ($this->developerKey) {
+        // TODO: Is this optional?
         // $request->setParameter('key', $this->developerKey);
       }
       $request->addHeader('Authorization', $this->getAuthenticationLine());
