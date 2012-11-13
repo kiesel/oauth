@@ -33,6 +33,12 @@
     protected abstract function provider();
 
     /**
+     * Retrieve scopes
+     *
+     */
+    protected abstract function scopes();
+
+    /**
      * ClientID
      *
      */
@@ -121,7 +127,7 @@
 
     private function displayAuthURL() {
       $this->out->writeLine('Go to:');
-      $this->out->writeLine($this->oauth2->createAuthUrl(array('user')));
+      $this->out->writeLine($this->oauth2->createAuthUrl($this->scopes()));
     }
 
     /**

@@ -18,20 +18,30 @@
    */
   class GoogleUserInfo extends AbstractOAuthCommand {
 
+    public function __construct() {
+      parent::__construct();
+      $this->oauth2->setRedirectUri('urn:ietf:wg:oauth:2.0:oob');
+    }
+
     protected function provider() {
       return new GoogleOAuth2Provider();
     }
 
+    protected function scopes() {
+      return array(
+       'https://www.googleapis.com/auth/userinfo.profile',
+       'https://www.googleapis.com/auth/userinfo.email'
+      );
+    }
+
     protected function process() {
       $rest= new RestClient('https://www.googleapis.com/oauth2/v2/');
-      $rest->setTrace(Logger::getInstance()->getCategory()->withAppender(new ColoredConsoleAppender()));
+      $rest->setTrace(Logger::getInstance()->getCategory());
       $request= new RestRequest('userinfo');
       $this->oauth2->signRest($request);
       $user= $rest->execute($request)->content();
 
-      $json= new JsonDecoder();
-      $this->out->writeLine('User: ', xp::stringOf($user));
-      $this->out->writeLine(xp::stringOf($json->decode($user)));
+      $this->out->writeLine(xp::stringOf(create(new JsonDecoder())->decode($user)));
     }
   }
 ?>
