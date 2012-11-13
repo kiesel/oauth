@@ -4,6 +4,7 @@
     'security.oauth2.OAuth',
     'security.oauth2.OAuth2Provider',
     'security.oauth2.OAuth2Exception',
+    'security.oauth2.OAuth2Header',
     'peer.http.HttpConnection',
     'peer.http.HttpRequest',
     'peer.http.HttpConstants',
@@ -301,36 +302,12 @@
     }
 
     /**
-     * Sign a given HttpRequest with this oauth's token's
-     * signature
+     * Retrieve authorization header
      *
-     * @param   peer.http.HttpRequest request
-     * @throws  security.oauth2.OAuth2Exception
+     * @return  security.oauth2.OAuth2Header
      */
-    public function sign(HttpRequest $request) {
-      $this->prepareSign();
-
-      // Add developerKey prior to signing request
-      if ($this->developerKey) {
-        $request->setParameter('key', $this->developerKey);
-      }
-      $request->setHeader('Authorization', $this->getAuthenticationLine());
-    }
-
-    /**
-     * Sign given RestRequest
-     *
-     * @param   webservices.rest.RestRequest request
-     */
-    public function signRest(RestRequest $request) {
-      $this->prepareSign();
-
-      // Add developerKey prior to signing request
-      if ($this->developerKey) {
-        // TODO: Is this optional?
-        // $request->setParameter('key', $this->developerKey);
-      }
-      $request->addHeader('Authorization', $this->getAuthenticationLine());
+    public function getAuthorization() {
+      return new OAuth2Header($this->accessToken);
     }
 
     /**

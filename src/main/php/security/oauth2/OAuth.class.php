@@ -4,8 +4,8 @@
 
   interface OAuth {
     public function authenticate($service);
-    public function sign(HttpRequest $request);
     public function createAuthUrl(array $scope);
+    public function getAuthorization();
 
     public function getAccessToken();
     public function setAccessToken($accessToken);

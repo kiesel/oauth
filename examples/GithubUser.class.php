@@ -25,11 +25,11 @@
       $rest= new RestClient('https://api.github.com/');
       $rest->setTrace(Logger::getInstance()->getCategory());
       $request= new RestRequest('user');
-      $this->oauth2->signRest($request);
-      $user= $rest->execute($request)->content();
+      $auth= $this->oauth2->getAuthorization();
+      $request->addHeader($auth->getName(), $auth->getValue());
+      $user= $rest->execute($request)->data();
 
-      $this->out->writeLine('User: ');
-      $this->out->writeLine(xp::stringOf(create(new JsonDecoder())->decode($user)));
+      $this->out->writeLine('User: ', xp::stringOf($user));
     }
   }
 ?>
