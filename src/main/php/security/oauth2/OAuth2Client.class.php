@@ -2,6 +2,7 @@
 
   uses(
     'security.oauth2.OAuth',
+    'security.oauth2.OAuth2AccessToken',
     'security.oauth2.OAuth2Provider',
     'security.oauth2.OAuth2Exception',
     'security.oauth2.OAuth2Header',
@@ -218,9 +219,7 @@
         throw new OAuth2Exception('Could not fetch OAuth2 token, response code was: '.$response->getStatusCode());
       }
 
-      $this->setAccessToken($data);
-      $this->setAccessTokenCreatedTime(new Date());
-
+      $this->setAccessToken(new OAuth2AccessToken($data));
       return $this->getAccessToken();
     }
 

@@ -38,8 +38,8 @@
       $rest= new RestClient('https://www.googleapis.com/oauth2/v2/');
       $rest->setTrace(Logger::getInstance()->getCategory());
       $request= new RestRequest('userinfo');
-      $auth= $this->oauth2->getAuthorization());
-      $rest->addHeader($auth->getName(), $auth->getValue());
+
+      $rest->addHeader($this->oauth2->getAuthorization());
       $user= $rest->execute($request)->data();
 
       $this->out->writeLine('User: ', xp::stringOf($user));
