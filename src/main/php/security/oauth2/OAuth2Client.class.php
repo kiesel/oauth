@@ -9,14 +9,15 @@
     'peer.http.HttpConstants',
     'webservices.json.JsonDecoder',
     'util.Date',
-    'util.DateUtil'
+    'util.DateUtil',
+    'util.log.Traceable'
   );
 
   /**
    * OAuth2 client implementation
    *
    */
-  class OAuth2Client extends Object implements OAuth {
+  class OAuth2Client extends Object implements OAuth, Traceable {
     private
       $clientId       = NULL,
       $clientSecret   = NULL,
@@ -31,6 +32,9 @@
     private
       $accessToken    = NULL;
 
+    private
+      $cat            = NULL;
+
     /**
      * Constructor
      *
@@ -38,6 +42,15 @@
      */
     public function __construct(OAuth2Provider $provider) {
       $this->setProvider($provider);
+    }
+
+    /**
+     * Set log category
+     *
+     * @param   util.log.LogCategory cat
+     */
+    public function setTrace($cat) {
+      $this->cat= $cat;
     }
 
     /**
@@ -157,7 +170,27 @@
       ), $params));
 
       $conn= new HttpConnection($url);
+
+      $this->cat && $this->cat->debug($this->getClassName(), '>>> ', $request->getRequestString());
       return $conn->send($request);
+    }
+
+    /**
+     * Helper method to read HTTP response
+     *
+     * @param   peer.http.HttpResponse response
+     * @return  string
+     */
+    private function read(HttpResponse $response) {
+      $data= '';
+
+      while ($chunk= $response->readData()) {
+        $data.= $chunk;
+      }
+
+      $this->cat && $this->cat->debug($this->getClassName(), '<<< ', $response, $data);
+
+      return $data;
     }
 
     /**
@@ -178,11 +211,12 @@
         'redirect_uri'  => $this->redirectUri
       ));
 
+      $data= $this->read($response);
       if (HttpConstants::STATUS_OK !== $response->getStatusCode()) {
         throw new OAuth2Exception('Could not fetch OAuth2 token, response code was: '.$response->getStatusCode());
       }
 
-      $this->setAccessToken($response->readData());
+      $this->setAccessToken($data);
       $this->setAccessTokenCreatedTime(new Date());
 
       return $this->getAccessToken();
@@ -309,11 +343,12 @@
         'grant_type'    => 'refresh_token'
       ));
 
+      $data= $this->read($response);
       if (HttpConstants::STATUS_OK !== $response->getStatusCode()) {
         throw new OAuth2Exception('Could not refresh accessToken, response code was: '.$response->getStatusCode());
       }
 
-      $this->setAccessToken($response->readData());
+      $this->setAccessToken($data);
       $this->setAccessTokenCreatedTime(new Date());
       return $this->getAccessToken();
     }
