@@ -43,17 +43,26 @@ Performing authorized action...
 ```
 
 * GithubUser
+1. First go to auth URL:
 ```sh
 kiesel@lostlap [14:14:53] [~/dev/oauth] [master *]
 -> % xpcli -cp examples GithubUser -cid <client-id> -sec <client-secret>
 Redirecting ...
 Go to:
 https://github.com/login/oauth/authorize?response_type=code&redirect_uri=&client_id=<client-id>&scope=user&access_type=&approval_prompt=force
+```
+
+2. Convert code into accessToken
+```sh
 kiesel@lostlap [14:14:54] [~/dev/oauth] [master *]
 -> % xpcli -cp examples GithubUser -cid <client-id> -sec <client-secret> -c 1e201539cc0cb138adf3
 Acquiring accessToken...
 Token:
 { "token_type" : "bearer" , "access_token" : "<access-token>" , "created" : 1352812514 }
+```
+
+3. Use accessToken to perform actual request on behalf of the user:
+```sh
 kiesel@lostlap [14:15:14] [~/dev/oauth] [master *]
 -> % xpcli -cp examples GithubUser -cid <client-id> -sec <client-secret> -t '{ "token_type" : "bearer" , "access_token" : "<access-token>" , "created" : 1352812514 }'
 Performing authorized action...
