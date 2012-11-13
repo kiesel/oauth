@@ -19,7 +19,7 @@
    *
    * @see   https://developers.google.com/accounts/docs/OAuth2
    */
-  class UserInfoCommand extends Command {
+  class GoogleUserInfo extends Command {
     private $code= NULL;
     private $token= NULL;
     private $client= NULL;
