@@ -219,7 +219,7 @@
         throw new OAuth2Exception('Could not fetch OAuth2 token, response code was: '.$response->getStatusCode());
       }
 
-      $this->setAccessToken(new OAuth2AccessToken($data));
+      $this->setAccessTokenRaw($data);
       return $this->getAccessToken();
     }
 
@@ -255,46 +255,21 @@
     }
 
     /**
-     * Set creation timestamp
-     *
-     * @param   util.Date time
-     */
-    private function setAccessTokenCreatedTime(Date $time) {
-      if (!is_array($this->accessToken)) {
-        throw new IllegalStateException('Cannot set creation time of access token.');
-      }
-
-      $this->accessToken['created']= $time->getTime();
-    }
-
-    /**
      * Prepare signature
      *
      * @throws  security.oauth2.OAuth2Exception
      */
-    private function prepareSign() {
+    private function checkExpiry() {
 
       // Check we actually can sign this
-      if (!$this->accessToken) {
+      if (!$this->accessToken instanceof OAuth2AccessToken) {
         throw new IllegalStateException('Cannot sign HttpRequest w/o possessing an accessToken.');
       }
 
       // Check if token has expired; in that case refresh it.
-      // FIXME: This outer if should disappear
-      if (isset($this->accessToken['created']) && isset($this->accessToken['expire_in'])) {
-        if (Date::now()->isAfter(DateUtil::addSeconds(new Date($this->accessToken['created']), $this->accessToken['expire_in']))) {
-          $this->refreshToken();
-        }
+      if ($this->accessToken->hasExpired()) {
+        $this->refreshToken();
       }
-    }
-
-    /**
-     * Retrieve authentication line
-     *
-     * @return  string
-     */
-    private function getAuthenticationLine() {
-      return 'Bearer '.$this->accessToken['access_token'];
     }
 
     /**
@@ -303,6 +278,7 @@
      * @return  security.oauth2.OAuth2Header
      */
     public function getAuthorization() {
+      $this->checkExpiry();
       return new OAuth2Header($this->accessToken);
     }
 
@@ -313,12 +289,12 @@
      * @throws  security.oauth2.OAuth2Exception if refresh is impossible or failed
      */
     public function refreshToken() {
-      if (!isset($this->accessToken['refresh_token'])) {
+      if (!$this->accessToken->hasRefreshToken()) {
         throw new OAuth2Exception('Cannot refresh accessToken, as no refresh_token token is available.');
       }
 
       $response= $this->doRequest($this->provider->getOauthTokenUri(), array(
-        'refresh_token' => $this->accessToken['refresh_token'],
+        'refresh_token' => $this->accessToken->getRefreshToken(),
         'grant_type'    => 'refresh_token'
       ));
 
@@ -327,8 +303,7 @@
         throw new OAuth2Exception('Could not refresh accessToken, response code was: '.$response->getStatusCode());
       }
 
-      $this->setAccessToken($data);
-      $this->setAccessTokenCreatedTime(new Date());
+      $this->setAccessTokenRaw($data);
       return $this->getAccessToken();
     }
 
@@ -338,7 +313,7 @@
      */
     public function revokeToken() {
       $response= $this->doRequest($this->provider->getOauthRevokeUri(), array(
-        'token' => $this->accessToken['access_token']
+        'token' => $this->accessToken->getToken()
       ));
 
       if (HttpConstants::STATUS_OK !== $response->getStatusCode()) {

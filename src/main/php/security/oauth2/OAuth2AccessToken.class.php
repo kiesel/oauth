@@ -3,22 +3,22 @@
 
   class OAuth2AccessToken extends Object {
     private 
-      $type       = NULL,
-      $token      = NULL,
-      $createdAt  = NULL,
-      $expiresIn  = NULL;
+      $type         = NULL,
+      $token        = NULL,
+      $createdAt    = NULL,
+      $expiresIn    = NULL,
+      $refreshToken = NULL;
 
     public function __construct($map) {
       if (!isset($map['access_token'])) {
         throw new OAuth2Exception('Access token looks invalid; expected "access_token" field.');
       }
 
-
-
       $this->withToken($map['access_token'])
         ->withType($map['token_type'])
-        ->withCreatedAt(isset($map['created_at']) ? new Date($map['created_at']) : new Date())
-        ->withExpiresIn(isset($map['expires_in']) ? $map['expires_in'] : NULL);
+        ->withCreatedAt(isset($map['created']) ? new Date($map['created']) : new Date())
+        ->withExpiresIn(isset($map['expires_in']) ? $map['expires_in'] : NULL)
+        ->withRefreshToken(isset($map['refresh_token']) ? $map['refresh_token'] : NULL);
     }
 
     public function withType($type) {
@@ -40,14 +40,28 @@
     }
 
     public function withCreatedAt(Date $time) {
-      $this->createdAt= clone $time;
+      $this->createdAt= $time;
       return $this;
     }
 
     public function withExpiresIn($secs) {
-      if (NULL === $secs) return;
+      if (NULL === $secs) return $this;
+
+      if ($secs < 0) {
+        throw new OAuth2Exception('Expires_in values must be a natural number, was: "'.$secs.'"');
+      }
 
       $this->expiresIn= (int)$secs;
+      return $this;
+    }
+
+    /**
+     * Set refresh token
+     *
+     */
+    public function withRefreshToken($token) {
+      $this->refreshToken= $token;
+      return $this;
     }
 
     public function getToken() {
@@ -67,6 +81,20 @@
     }
 
     public function hasExpired() {
+      if (!$this->hasExpiry()) return FALSE;
       return create(new Date())->isAfter(DateUtil::addSeconds($this->createdAt, $this->expiresIn));
+    }
+
+    public function hasRefreshToken() {
+      return NULL !== $this->refreshToken;
+    }
+
+    /**
+     * Retrieve refresh token
+     *
+     * @return  string
+     */
+    public function getRefreshToken() {
+      return $this->refreshToken;
     }
   }
