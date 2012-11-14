@@ -1,5 +1,5 @@
 <?php
-  uses('security.oauth2.OAuth2Exception');
+  uses('util.DateUtil', 'security.oauth2.OAuth2Exception');
 
   class OAuth2AccessToken extends Object {
     private 
@@ -13,14 +13,12 @@
         throw new OAuth2Exception('Access token looks invalid; expected "access_token" field.');
       }
 
+
+
       $this->withToken($map['access_token'])
         ->withType($map['token_type'])
-        ->withCreatedAt(isset($map['created_at']) ? $map['created_at'] : new Date());
-
-      // TODO: Comment in / review against RFC
-      // if (!isset($struct['expires_in'])) {
-      //   throw new OAuth2Exception('Access token looks invalid; expected "expires_in" field.');
-      // }
+        ->withCreatedAt(isset($map['created_at']) ? new Date($map['created_at']) : new Date())
+        ->withExpiresIn(isset($map['expires_in']) ? $map['expires_in'] : NULL);
     }
 
     public function withType($type) {
@@ -43,6 +41,13 @@
 
     public function withCreatedAt(Date $time) {
       $this->createdAt= clone $time;
+      return $this;
+    }
+
+    public function withExpiresIn($secs) {
+      if (NULL === $secs) return;
+
+      $this->expiresIn= (int)$secs;
     }
 
     public function getToken() {
@@ -55,5 +60,13 @@
 
     public function getCreatedAt() {
       return clone $this->createdAt;
+    }
+
+    public function hasExpiry() {
+      return NULL !== $this->expiresIn;
+    }
+
+    public function hasExpired() {
+      return create(new Date())->isAfter(DateUtil::addSeconds($this->createdAt, $this->expiresIn));
     }
   }
