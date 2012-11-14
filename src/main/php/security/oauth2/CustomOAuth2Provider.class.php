@@ -5,7 +5,7 @@
     'security.oauth2.OAuth2Provider'
   );
 
-  class CustomerOAuth2Provider extends Object implements OAuth2Provider, Configurable {
+  class CustomOAuth2Provider extends Object implements OAuth2Provider, Configurable {
     private
       $oauthUrl       = NULL,
       $oauthTokenUri  = NULL,
@@ -35,7 +35,7 @@
       $this->oauthRevokeUri= $uri;
     }
 
-    public function configure(Properties $prop) {
+    public function configure($prop) {
       $this->setOAuthUrl($prop->readString('provider', 'url'));
       $this->setOAuthTokenUri($prop->readString('provider', 'tokenUri'));
       $this->setOauthRevokeUri($prop->readString('provider', 'revokeUri'));

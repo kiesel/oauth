@@ -8,7 +8,7 @@
     public function getAuthorization();
 
     public function getAccessToken();
-    public function setAccessToken($accessToken);
+    public function setAccessToken(OAuth2AccessToken $accessToken);
     public function setDeveloperKey($developerKey);
     public function refreshToken();
     public function revokeToken();

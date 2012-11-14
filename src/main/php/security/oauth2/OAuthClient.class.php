@@ -118,7 +118,7 @@
         'oauth_timestamp'         => Date::now()->getTime(),
         'oauth_nonce'             => md5(microtime().mt_rand()),
         'oauth_version'           => '1.0',
-      ));
+      )));
     }
 
     private function encodeHeader(array $values) {
@@ -140,16 +140,17 @@
     public function getAccessToken() {
 
     }
-    public function setAccessToken($accessToken) {
+
+    public function setAccessToken(OAuth2AccessToken $accessToken) {
 
     }
-    public function setDeveloperKey($developerKey) {
-
-    }
-    public function refreshToken($refreshToken) {
+    public function refreshToken() {
 
     }
     public function revokeToken() {
+
+    }
+    public function getAuthorization() {
 
     }
 

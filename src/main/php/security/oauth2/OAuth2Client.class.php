@@ -226,23 +226,20 @@
     /**
      * Set access token
      *
+     * @param   security.oauth2.OAuth2AccessToken
+     */
+    public function setAccessToken(OAuth2AccessToken $data) {
+      $this->accessToken= $token;
+    }
+
+    /**
+     * Set access token
+     *
      * @param   string data
      * @throws  security.oauth2.OAuth2Exception if invalid token
      */
-    public function setAccessToken($data) {
-      $decoder= new JsonDecoder();
-      $struct= $decoder->decode($data);
-
-      if (!isset($struct['access_token'])) {
-        throw new OAuth2Exception('Access token looks invalid; expected "access_token" field.');
-      }
-
-      // TODO: Comment in / review against RFC
-      // if (!isset($struct['expires_in'])) {
-      //   throw new OAuth2Exception('Access token looks invalid; expected "expires_in" field.');
-      // }
-
-      $this->accessToken= $struct;
+    public function setAccessTokenRaw($data) {
+      $this->setAccessToken(new OAuth2AccessToken(create(new JsonDecoder())->decode($data)));
     }
 
     /**
