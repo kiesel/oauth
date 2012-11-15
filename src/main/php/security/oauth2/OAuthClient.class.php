@@ -1,7 +1,7 @@
 <?php
   uses(
     'security.oauth2.OAuth',
-    'peer.http.HttpRequest'
+    'security.oauth2.OAuthHttpRequest'
   );
 
   /**
@@ -108,8 +108,8 @@
 
 
     public function authenticate($service) {
-      $conn= new HttpConnection($this->provider->getRequestTokenUri());
-      $request= new HttpRequest($this->provider->getRequestTokenUri());
+      $conn= new HttpConnection();
+      $request= new OAuthHttpRequest($this->provider->getRequestTokenUri());
       $request->addHeader('Authorization', $this->encodeHeader(array(
         'oauth_consumer_key'      => $this->getClientId(),
         'oauth_callback'          => $this->getRedirectUri(),
