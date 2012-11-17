@@ -110,15 +110,7 @@
     public function authenticate($service) {
       $conn= new HttpConnection();
       $request= new OAuthHttpRequest($this->provider->getRequestTokenUri());
-      $request->addHeader('Authorization', $this->encodeHeader(array(
-        'oauth_consumer_key'      => $this->getClientId(),
-        'oauth_callback'          => $this->getRedirectUri(),
-        'oauth_signature_method'  => 'HMAC_SHA1',
-        'oauth_signature'         => 'TODO',
-        'oauth_timestamp'         => Date::now()->getTime(),
-        'oauth_nonce'             => md5(microtime().mt_rand()),
-        'oauth_version'           => '1.0',
-      )));
+      $request->generateAuthorization($this);
     }
 
     private function encodeHeader(array $values) {
