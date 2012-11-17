@@ -53,7 +53,14 @@
      * @return  string
      */
     protected function signatureBaseString(array $params) {
-      $ret= strtoupper($this->method).'&'.rawurlencode($this->getURL()->getURL()).'&';
+      // First part is HTTP method used
+      $ret= strtoupper($this->method).'&';
+
+      // Then, base URL - the URL w/o any parameters
+      $url= clone $this->getURL();
+      $url->setQuery(NULL);
+      $url->setFragment(NULL);
+      $ret.= rawurlencode($url->getURL()).'&';
 
       $leading= TRUE;
       foreach ($this->signableParameters($params) as $key => $value) {

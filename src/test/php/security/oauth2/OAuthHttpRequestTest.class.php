@@ -102,9 +102,8 @@
      */
     protected function setupTwitterExample() {
       $this->fixture->setMethod(HttpConstants::POST);
-      $this->fixture->setURL(new URL('https://api.twitter.com/1/statuses/update.json'));
+      $this->fixture->setURL(new URL('https://api.twitter.com/1/statuses/update.json?include_entities=true'));
       $this->fixture->setParameter('status', 'Hello Ladies + Gentlemen, a signed OAuth request!');
-      $this->fixture->setParameter('include_entities', 'true');
     }
 
     /**
