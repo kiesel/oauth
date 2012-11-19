@@ -3,7 +3,7 @@
   interface OAuthProvider {
     public function getOAuthRequestTokenUri();
     public function getOAuthTokenUri();
-    public function getOAuthRevokeUri();
+    public function getOAuthAccessTokenUri();
   }
 
 ?>

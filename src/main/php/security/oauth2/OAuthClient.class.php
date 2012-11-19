@@ -1,7 +1,9 @@
 <?php
   uses(
+    'util.log.Traceable',
     'security.oauth2.OAuth',
-    'security.oauth2.OAuthHttpRequest'
+    'security.oauth2.OAuthHttpRequest',
+    'security.oauth2.OAuthException'
   );
 
   /**
@@ -9,7 +11,7 @@
    *
    * @see   https://dev.twitter.com/docs/api/1/post/oauth/request_token
    */
-  class OAuthClient extends Object implements OAuth {
+  class OAuthClient extends Object implements OAuth, Traceable {
     private 
       $clientId       = NULL,
       $clientSecret   = NULL,
@@ -22,6 +24,9 @@
     private 
       $accessToken    = NULL;
 
+    private
+      $cat            = NULL;
+
     /**
      * Constructor
      *
@@ -30,6 +35,15 @@
     public function __construct(OAuthProvider $provider) {
       $this->setProvider($provider);
       $this->setRedirectUri('oob');
+    }
+
+    /**
+     * Set log category
+     *
+     * @param   util.log.LogCategory cat
+     */
+    public function setTrace($cat) {
+      $this->cat= $cat;
     }
 
     /**
@@ -89,6 +103,15 @@
     }
 
     /**
+     * Retrieve client secret
+     *
+     * @return  string
+     */
+    public function getClientSecret() {
+      return $this->clientSecret;
+    }
+
+    /**
      * Set developer key
      *
      * @param   string key
@@ -107,24 +130,50 @@
     }
 
 
-    public function authenticate($service) {
-      $conn= new HttpConnection();
-      $request= new OAuthHttpRequest($this->provider->getRequestTokenUri());
-      $request->generateAuthorization($this);
-    }
-
-    private function encodeHeader(array $values) {
-      $s= '';
-      foreach ($values as $k => $v) {
-        $s.= $k.'="'.urlencode($v).'", ';
+    public function authenticate($scope) {
+      $conn= new HttpConnection($this->provider->getOAuthRequestTokenUri());
+      $request= new OAuthHttpRequest(new URL($this->provider->getOAuthRequestTokenUri()));
+      $request->setMethod(HttpConstants::POST);
+      
+      if (sizeof($scope)) {
+        $request->setParameter('scope', implode(' ', $scope));
       }
 
-      return rtrim($s, ', ');
+      $request->generateAuthorization($this);
+
+      $this->cat && $this->cat->debug('>>>', $request->getRequestString());
+      $response= $conn->send($request);
+
+      $data= $this->recv($response);
+      if (HttpConstants::STATUS_OK !== $response->getStatusCode()) {
+        throw new OAuthException('Could not authenticate, expected status 200, got "'.$response->getStatusCode().'"');
+      }
+
+
+    }
+
+    /**
+     * Read response
+     *
+     * @param   peer.http.HttpResponse response
+     * @return  string
+     */
+    private function recv(HttpResponse $response) {
+      $this->cat && $this->cat->debug('<<<', $response);
+      $buf= '';
+
+      while ($data= $response->readData()) {
+        $buf.= $data;
+      }
+
+      $this->cat && $this->cat->debug('<<<', $buf);
+      return $buf;
     }
 
     public function sign(HttpRequest $request) {
 
     }
+
     public function createAuthUrl(array $scope) {
 
     }

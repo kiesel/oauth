@@ -21,14 +21,29 @@
       $parameters= array(
         'oauth_consumer_key'      => $client->getClientId(),
         'oauth_callback'          => $client->getRedirectUri(),
-        'oauth_signature_method'  => 'HMAC_SHA1',
+        'oauth_signature_method'  => 'HMAC-SHA1',
         'oauth_timestamp'         => Date::now()->getTime(),
         'oauth_nonce'             => md5(microtime().mt_rand()),
         'oauth_version'           => '1.0',
       );
-      $parameters['oauth_signature']= $this->oauthSignature($parameters, $clientId, $clientSecret);
+      $parameters['oauth_signature']= $this->oauthSignature($parameters, $client->getClientId(), $client->getClientSecret());
 
-      $this->addHeader('Authorization', $this->encodeHeader($parameters));
+      $this->setHeader('Authorization', $this->encodeHeader($parameters));
+    }
+
+    /**
+     * Encode auth header
+     * 
+     * @param   <string,string> values
+     * @return  string
+     */
+    private function encodeHeader(array $values) {
+      $s= '';
+      foreach ($values as $k => $v) {
+        $s.= $k.'="'.rawurlencode($v).'", ';
+      }
+
+      return 'OAuth '.substr($s, 0, -2);
     }
 
     /**
@@ -48,8 +63,9 @@
     }
 
     /**
-     * Description
+     * Generate string to calculate signature over
      *
+     * @param   <string,string> params
      * @return  string
      */
     protected function signatureBaseString(array $params) {
@@ -68,7 +84,7 @@
           $ret.= '%26'; // rawurlencode('&');
         }
 
-        $ret.= rawurlencode($key.'='.rawurlencode($value));
+        $ret.= rawurlencode(rawurlencode($key).'='.rawurlencode($value));
         $leading= FALSE;
       }
 
