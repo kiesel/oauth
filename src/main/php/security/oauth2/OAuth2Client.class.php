@@ -228,7 +228,7 @@
      *
      * @param   security.oauth2.OAuth2AccessToken
      */
-    public function setAccessToken(OAuth2AccessToken $data) {
+    public function setAccessToken(OAuth2AccessToken $token) {
       $this->accessToken= $token;
     }
 
