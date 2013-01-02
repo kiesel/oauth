@@ -10,10 +10,10 @@
     /**
      * Constructor
      *
-     * @param   <string,string> accessToken
+     * @param   security.oauth2.OAuth2AccessToken
      */
-    public function __construct($accessToken) {
-      parent::__construct('Authorization', $accessToken['token_type'].' '.$accessToken['access_token']);
+    public function __construct(OAuth2AccessToken $token) {
+      parent::__construct('Authorization', $token->getType().' '.$token->getToken());
     }
   }
 ?>
