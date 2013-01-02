@@ -97,4 +97,33 @@
     public function getRefreshToken() {
       return $this->refreshToken;
     }
+
+    /**
+     * Retrieve map
+     *
+     * @return  <string,string>[]
+     */
+    public function getMap() {
+      $map= array(
+        'access_token' => $this->token,
+        'token_type' => $this->type,
+        'created' => $this->created,
+        'expires_in' => $this->expires_in,
+        'refresh_token' => $this->refresh_token
+      );
+
+      return $map;
+    }
+
+    /**
+     * Retrieve string representation
+     *
+     * @return  string
+     */
+    public function toString() {
+      $s= $this->getClassName().'@('.$this->hashCode().") {\n";
+      $s.= '  [ token ] '.$this->token."\n";
+      $s.= '  [  type ] '.$this->type."\n";
+      return $s."}";
+    }
   }

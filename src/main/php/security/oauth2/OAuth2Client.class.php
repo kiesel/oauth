@@ -219,7 +219,12 @@
         throw new OAuth2Exception('Could not fetch OAuth2 token, response code was: '.$response->getStatusCode());
       }
 
-      $this->setAccessTokenRaw($data);
+      $value= create(new JsonDecoder())->decode($data);
+      if (isset($value['error'])) {
+        throw new OAuth2Exception('Could not authenticate code: "'.$value['error'].'"');
+      }
+
+      $this->setAccessToken(new OAuth2AccessToken($value));
       return $this->getAccessToken();
     }
 
@@ -251,7 +256,7 @@
       if (NULL === $this->accessToken) return NULL;
 
       $decoder= new JsonDecoder();
-      return $decoder->encode($this->accessToken);
+      return $decoder->encode($this->accessToken->getMap());
     }
 
     /**
