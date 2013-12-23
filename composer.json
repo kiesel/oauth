@@ -1,5 +1,5 @@
 {
-  "name": "kiesel/oauth",
+  "name": "xp-forge/oauth",
   "description": "OAuth2 Library for XP Framework",
   "type": "xp-library",
   "license": "BSD-3-Clause",
@@ -19,6 +19,6 @@
 
   "require": {
     "kiesel/core": "dev-master",
-    "kiesel/xp-composer-installer": "*"
+    "xp-forge/xp-composer-installer": "*"
   }
 }
