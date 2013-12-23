@@ -18,7 +18,7 @@
   ],
 
   "require": {
-    "kiesel/core": "dev-master",
+    "xp-framework/core": "dev-master",
     "xp-forge/xp-composer-installer": "*"
   }
 }
