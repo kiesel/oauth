@@ -1,4 +1,9 @@
 {
-  "name": "xp-forge/oauth",
+  "name": "kiesel/oauth",
+  "description": "OAuth2 Library for XP Framework",
+  "type": "xp-library",
+  "license": "BSD-3-Clause",
   "version": "0.1.0-beta"
+
+
 }
