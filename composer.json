@@ -5,6 +5,13 @@
   "license": "BSD-3-Clause",
   "version": "0.1.0-dev"
 
+  "repositories" : [
+    {
+      "type": "vcs",
+      "url": "https://github.com/kiesel/xp-composer-installer"
+    }
+  ],
+
   "require": {
     "kiesel/xp-composer-installer": "*"
   }
