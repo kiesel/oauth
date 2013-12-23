@@ -3,7 +3,7 @@
   "description": "OAuth2 Library for XP Framework",
   "type": "xp-library",
   "license": "BSD-3-Clause",
-  "version": "0.1.0-dev"
+  "version": "0.1.0-dev",
 
   "repositories" : [
     {
