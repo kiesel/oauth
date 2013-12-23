@@ -4,6 +4,7 @@
   "type": "xp-library",
   "license": "BSD-3-Clause",
   "version": "0.1.0-dev",
+  "minimum-stability": "dev",
 
   "repositories" : [
     {
